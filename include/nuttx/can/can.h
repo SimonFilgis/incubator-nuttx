@@ -36,7 +36,7 @@
 #include <nuttx/list.h>
 #include <nuttx/fs/fs.h>
 #include <nuttx/fs/ioctl.h>
-#include <nuttx/semaphore.h>
+#include <nuttx/mutex.h>
 
 #ifdef CONFIG_CAN_TXREADY
 #  include <nuttx/wqueue.h>
@@ -563,7 +563,8 @@ struct can_ops_s
 
   /* All ioctl calls will be routed through this method */
 
-  CODE int (*co_ioctl)(FAR struct can_dev_s *dev, int cmd, unsigned long arg);
+  CODE int (*co_ioctl)(FAR struct can_dev_s *dev,
+                       int cmd, unsigned long arg);
 
   /* Send a remote request. Lower-half drivers should NOT implement this if
    * they support sending RTR messages with the regular send function
@@ -616,8 +617,8 @@ struct can_dev_s
   uint8_t              cd_error;         /* Flags to indicate internal device errors */
 #endif
   struct list_node     cd_readers;       /* List of readers */
-  sem_t                cd_closesem;      /* Locks out new opens while close is in progress */
-  sem_t                cd_pollsem;       /* Manages exclusive access to cd_fds[] */
+  mutex_t              cd_closelock;     /* Locks out new opens while close is in progress */
+  mutex_t              cd_polllock;      /* Manages exclusive access to cd_fds[] */
   struct can_txfifo_s  cd_xmit;          /* Describes transmit FIFO */
 #ifdef CONFIG_CAN_TXREADY
   struct work_s        cd_work;          /* Use to manage can_txready() work */
