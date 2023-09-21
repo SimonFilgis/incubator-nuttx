@@ -158,14 +158,12 @@ static inline int nxmutex_lock(FAR mutex_t *mutex)
     {
       /* Take the semaphore (perhaps waiting) */
 
-      ret = _SEM_WAIT(mutex);
+      ret = nxsem_wait(mutex);
       if (ret >= 0)
         {
           break;
         }
-
-      ret = _SEM_ERRVAL(ret);
-      if (ret != -EINTR && ret != -ECANCELED)
+      else if (ret != -EINTR && ret != -ECANCELED)
         {
           break;
         }
