@@ -34,6 +34,7 @@
 #include <debug.h>
 
 #include <arch/board/board.h>
+#include <arch/chip/sam_afec.h>
 #include <nuttx/irq.h>
 #include <nuttx/arch.h>
 #include <nuttx/wqueue.h>
@@ -792,6 +793,7 @@ static void afec_reset(struct adc_dev_s *dev)
 
   gpio_pinset_t pinset = 0;
   uint32_t afec_cher = 0;
+  uint32_t afec_cgr = 0;
   for (int i = 0; i < priv->nchannels; i++)
     {
       DEBUGASSERT(priv->chanlist[i] < ADC_MAX_CHANNELS);
@@ -803,11 +805,13 @@ static void afec_reset(struct adc_dev_s *dev)
       afec_putreg(priv, SAM_AFEC_COCR_OFFSET, 0x200);
 
       afec_cher |= AFEC_CH(priv->chanlist[i]);
+      afec_cgr |= AFEC_CGR_GAIN(priv->chanlist[i], 0);
     }
 
   /* Enable channels */
 
   afec_putreg(priv, SAM_AFEC_CHER_OFFSET, afec_cher);
+  afec_putreg(priv, SAM_AFEC_CGR_OFFSET, afec_cgr);
 
   return;
 
@@ -974,7 +978,7 @@ static void afec_shutdown(struct adc_dev_s *dev)
 
 static int afec_ioctl(struct adc_dev_s *dev, int cmd, unsigned long arg)
 {
-  struct samv7_dev_s *priv = (struct samv7_dev_s *)dev->ad_priv;
+  struct samv7_dev_s *priv = (struct samv7_dev_s*) dev->ad_priv;
   int ret = OK;
 
   switch (cmd)
@@ -986,11 +990,37 @@ static int afec_ioctl(struct adc_dev_s *dev, int cmd, unsigned long arg)
         }
         break;
 #endif
-      case ANIOC_GET_NCHANNELS:
-        {
-          /* Return the number of configured channels */
+    case ANIOC_GET_NCHANNELS:
+      {
+        /* Return the number of configured channels */
 
-          ret = priv->nchannels;
+        ret = priv->nchannels;
+      }
+      break;
+    case ANIOC_SAMV7_AFEC_IOCTRL_GAIN:
+      {
+        /* Set the requested gain of the associated channel */
+        sam_afec_gain_param_tds *chgain = (sam_afec_gain_param_tds*) arg;
+
+        uint32_t afec_cgr = afec_getreg(priv, SAM_AFEC_CGR_OFFSET);
+        afec_cgr &= ~AFEC_CGR_GAIN_MASK(chgain->channel);
+        afec_cgr |= AFEC_CGR_GAIN(chgain->channel, chgain->gain);
+        afec_putreg(priv, SAM_AFEC_CGR_OFFSET, afec_cgr);
+
+        /* now the new gain is set, now we need to adjust the offset register */
+        uint16_t offset;
+        if (chgain->gain == 0)
+            offset = 0x200;
+        else if (chgain->gain == 1)
+          offset = 0x100;
+        else if (chgain->gain == 2)
+          offset = 0x40;
+
+          afec_putreg(priv, SAM_AFEC_CSELR_OFFSET,
+                      AFEC_CSELR_CSEL(chgain->channel));
+
+          afec_putreg(priv, SAM_AFEC_COCR_OFFSET, offset);
+
         }
         break;
 
