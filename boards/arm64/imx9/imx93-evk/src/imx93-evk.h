@@ -67,5 +67,17 @@ int imx9_bringup(void);
 int imx9_pwm_setup(void);
 #endif
 
+/****************************************************************************
+ * Name: imx9_i2c_setup
+ *
+ * Description:
+ *   Initialize I2C devices and driver
+ *
+ ****************************************************************************/
+
+#if defined(CONFIG_I2C_DRIVER)
+int imx9_i2c_initialize(void);
+#endif
+
 #endif /* __ASSEMBLY__ */
 #endif /* __BOARDS_ARM64_IMX9_IMX93_EVK_SRC_IMX93_EVK_H */

@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/sparc/src/common/sparc_getintstack.c
+ * libs/libc/stdlib/lib_reallocarray.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -22,23 +22,57 @@
  * Included Files
  ****************************************************************************/
 
-#include <nuttx/config.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-#include <stdint.h>
+#include "libc.h"
 
-#include "sparc_internal.h"
+/****************************************************************************
+ * Pre-processor definitions
+ ****************************************************************************/
+
+/* Set overflow control only if larger than 65536 for bit platforms. The
+ * limit is the same as in OpenBSD.
+ */
+
+#define CHECK_OVERFLOW_LIMIT (1UL << (sizeof(size_t) * 4))
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_get_intstackbase
+ * Name: reallocarray
+ *
+ * Description:
+ *   The reallocarray function has the same functionality as realloc but
+ *   it fails safely if multiplication overflow occurs.
+ *
+ * Input Parameters:
+ *   ptr   - old memory to be reallocated and freed
+ *   nmemb - number of elements
+ *   size  - size of one element in bytes
+ *
+ * Returned Value:
+ *   Upon successful completion, the address of the re-allocated memory
+ *   is returned and previous pointer is freed. NULL is returned on error
+ *   with original block of memory left unchanged.
+ *
  ****************************************************************************/
 
-#if CONFIG_ARCH_INTERRUPTSTACK > 3
-uintptr_t up_get_intstackbase(void)
+FAR void *reallocarray(FAR void *ptr, size_t nmemb, size_t size)
 {
-  return (uintptr_t)sparc_intstack_alloc();
+  if (nmemb != 0 && (nmemb >= CHECK_OVERFLOW_LIMIT ||
+      size >= CHECK_OVERFLOW_LIMIT))
+    {
+      /* Do division only if at least one element is larget than limit */
+
+      if ((SIZE_MAX / nmemb) < size)
+        {
+          set_errno(ENOMEM);
+          return NULL;
+        }
+    }
+
+  return lib_realloc(ptr, nmemb * size);
 }
-#endif
