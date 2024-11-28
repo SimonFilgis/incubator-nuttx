@@ -2591,6 +2591,15 @@ config ARCH_BOARD_STM32F051_DISCOVERY
 	---help---
 		STMicro STM32F051-Discovery board based on the STMicro STM32F051R8 MCU.
 
+config ARCH_BOARD_STM32F030_POWERDELIVERY
+	bool "IBF STM32F030-Power Delivery board"
+	depends on ARCH_CHIP_STM32F030R8
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		STMicro STM32F051-Discovery board based on the STMicro STM32F051R8 MCU.
+
 config ARCH_BOARD_STM32F072_DISCOVERY
 	bool "STMicro STM32F072-Discovery board"
 	depends on ARCH_CHIP_STM32F072RB
@@ -3534,6 +3543,7 @@ config ARCH_BOARD
 	default "stm32_tiny"                if ARCH_BOARD_STM32_TINY
 	default "stm32l0538-disco"          if ARCH_BOARD_STM32L0538_DISCO
 	default "stm32f051-discovery"       if ARCH_BOARD_STM32F051_DISCOVERY
+	default "stm32f030-powerdelivery"   if ARCH_BOARD_STM32F030_POWERDELIVERY
 	default "stm32f072-discovery"       if ARCH_BOARD_STM32F072_DISCOVERY
 	default "stm32f103-minimum"         if ARCH_BOARD_STM32F103_MINIMUM
 	default "stm32f411-minimum"         if ARCH_BOARD_STM32F411_MINIMUM
@@ -4056,6 +4066,9 @@ source "boards/arm/stm32f0l0g0/nucleo-l073rz/Kconfig"
 endif
 if ARCH_BOARD_STM32F051_DISCOVERY
 source "boards/arm/stm32f0l0g0/stm32f051-discovery/Kconfig"
+endif
+if ARCH_BOARD_STM32F030_POWERDELIVERY
+source "boards/arm/stm32f0l0g0/stm32f030-powerdelivery/Kconfig"
 endif
 if ARCH_BOARD_STM32L0538_DISCO
 source "boards/arm/stm32f0l0g0/stm32l0538-disco/Kconfig"

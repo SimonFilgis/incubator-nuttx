@@ -2202,6 +2202,8 @@ Below is a guide to the available README files in the NuttX source tree:
      |   |   |   |   `- README.txt
      |   |   |   |- stm32f051-discovery/
      |   |   |   |   `- README.txt
+     |   |   |   |- stm32f030-powerdelivery/
+     |   |   |   |   `- README.txt
      |   |   |   `- stm32f072-discovery/
      |   |   |       `- README.txt
      |   |   |- stm32f7/
